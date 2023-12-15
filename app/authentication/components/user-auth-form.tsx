@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn, signOut } from "next-auth/react";
 
-interface UserAuthFormProps extends HTMLAttributes<HTMLDivElement> { }
+interface UserAuthFormProps extends HTMLAttributes<HTMLDivElement> {}
 interface IForm {
   username: string;
   password: string;
@@ -18,7 +18,6 @@ interface IForm {
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-
   const [form, setFormValue] = useState<IForm>({
     username: "",
     password: "",
@@ -26,23 +25,29 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
 
   const updateForm = (
     formKey: keyof IForm,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const { value } = event.target;
 
     setFormValue({
       ...form,
-      [formKey]: value
+      [formKey]: value,
     });
   };
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
-    signIn("credentials", {
-      username: form.username,
-      password: form.password,
-      callbackUrl: "/",
-    });
+    try {
+      setIsLoading(true);
+      const res = await signIn("credentials", {
+        username: form.username,
+        password: form.password,
+        callbackUrl: "/",
+      });
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -55,10 +60,9 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             </Label>
             <Input
               id="email"
-              placeholder="name@example.com"
-              type="email"
+              placeholder="username"
+              type="text"
               autoCapitalize="none"
-              autoComplete="email"
               autoCorrect="off"
               disabled={isLoading}
               onChange={(event) => updateForm("username", event)}
@@ -77,21 +81,12 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
               onChange={(event) => updateForm("password", event)}
             />
           </div>
-          <div className="flex w-full justify-end">
-            <Button className="mr-2" disabled={isLoading} onClick={() => signOut()}>
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Sign Out
-            </Button>
-            <Button disabled={isLoading}>
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Sign In
-            </Button>
-
-          </div>
+          <Button disabled={isLoading}>
+            {isLoading && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Sign In
+          </Button>
         </div>
       </form>
     </div>
